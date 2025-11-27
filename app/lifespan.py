@@ -1,12 +1,8 @@
 from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
-
-from app.models import close_orm, init_orm
-
+from app.database import create_tables
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    await init_orm()
+async def lifespan(app):
+    # При запуске создаем таблицы
+    create_tables()
     yield
-    await close_orm()

@@ -3,10 +3,14 @@
 venv/
 env/
 
+# Database
+*.db
+*.sqlite3
+
 # Python
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
 build/
@@ -25,13 +29,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# Database
-*.db
-*.sqlite3
-
-# Docker
-.dockerignore
-
 # IDE
 .vscode/
 .idea/
@@ -42,14 +39,13 @@ wheels/
 .DS_Store
 Thumbs.db
 
+# Logs
+*.log
+
 # Environment variables
 .env
 .env.local
 
-# Logs
-*.log
-logs/
-
-# Temporary files
-temp/
-tmp/
+# Docker
+Dockerfile
+docker-compose.yml
