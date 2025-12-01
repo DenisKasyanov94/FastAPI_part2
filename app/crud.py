@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import Optional, List
+import uuid
 from app import models, schemas, auth
 
 
@@ -12,7 +13,7 @@ def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_user_by_id(db: Session, user_id: str):
+def get_user_by_id(db: Session, user_id: uuid.UUID):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
@@ -28,7 +29,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        group=user.group  # Используем группу из запроса
+        group=user.group.value if isinstance(user.group, schemas.UserGroup) else user.group
     )
     db.add(db_user)
     db.commit()
@@ -36,7 +37,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def update_user(db: Session, user_id: str, user_update: schemas.UserUpdate):
+def update_user(db: Session, user_id: uuid.UUID, user_update: schemas.UserUpdate):
     db_user = get_user_by_id(db, user_id)
     if not db_user:
         return None
@@ -63,7 +64,7 @@ def update_user(db: Session, user_id: str, user_update: schemas.UserUpdate):
     return db_user
 
 
-def delete_user(db: Session, user_id: str):
+def delete_user(db: Session, user_id: uuid.UUID):
     db_user = get_user_by_id(db, user_id)
     if db_user:
         db.delete(db_user)
@@ -72,7 +73,7 @@ def delete_user(db: Session, user_id: str):
 
 
 # Advertisement CRUD
-def create_advertisement(db: Session, advertisement: schemas.AdvertisementCreate, author_id: str):
+def create_advertisement(db: Session, advertisement: schemas.AdvertisementCreate, author_id: uuid.UUID):
     db_advertisement = models.Advertisement(
         **advertisement.dict(),
         author_id=author_id
@@ -83,7 +84,7 @@ def create_advertisement(db: Session, advertisement: schemas.AdvertisementCreate
     return db_advertisement
 
 
-def get_advertisement_by_id(db: Session, advertisement_id: str):
+def get_advertisement_by_id(db: Session, advertisement_id: uuid.UUID):
     return db.query(models.Advertisement).filter(models.Advertisement.id == advertisement_id).first()
 
 
@@ -107,7 +108,7 @@ def get_advertisements(
     return query.order_by(models.Advertisement.created_at.desc()).all()
 
 
-def update_advertisement(db: Session, advertisement_id: str, advertisement_update: schemas.AdvertisementUpdate):
+def update_advertisement(db: Session, advertisement_id: uuid.UUID, advertisement_update: schemas.AdvertisementUpdate):
     db_advertisement = get_advertisement_by_id(db, advertisement_id)
     if not db_advertisement:
         return None
@@ -121,7 +122,7 @@ def update_advertisement(db: Session, advertisement_id: str, advertisement_updat
     return db_advertisement
 
 
-def delete_advertisement(db: Session, advertisement_id: str):
+def delete_advertisement(db: Session, advertisement_id: uuid.UUID):
     db_advertisement = get_advertisement_by_id(db, advertisement_id)
     if db_advertisement:
         db.delete(db_advertisement)
@@ -129,5 +130,5 @@ def delete_advertisement(db: Session, advertisement_id: str):
     return db_advertisement
 
 
-def get_user_advertisements(db: Session, user_id: str):
+def get_user_advertisements(db: Session, user_id: uuid.UUID):
     return db.query(models.Advertisement).filter(models.Advertisement.author_id == user_id).all()

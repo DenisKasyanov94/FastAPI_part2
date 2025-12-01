@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional, List
+import uuid
 from app.database import get_db
 from app import crud, schemas, models
 from app.dependencies import get_current_user, require_admin, optional_auth
@@ -20,7 +21,7 @@ def create_advertisement(
 
 @router.get("/{advertisement_id}", response_model=schemas.AdvertisementResponse)
 def get_advertisement(
-        advertisement_id: str,
+        advertisement_id: uuid.UUID,
         current_user: Optional[models.User] = Depends(optional_auth),
         db: Session = Depends(get_db)
 ):
@@ -35,7 +36,7 @@ def get_advertisement(
 
 @router.patch("/{advertisement_id}", response_model=schemas.AdvertisementResponse)
 def update_advertisement(
-        advertisement_id: str,
+        advertisement_id: uuid.UUID,
         advertisement_update: schemas.AdvertisementUpdate,
         current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
@@ -59,7 +60,7 @@ def update_advertisement(
 
 @router.delete("/{advertisement_id}")
 def delete_advertisement(
-        advertisement_id: str,
+        advertisement_id: uuid.UUID,
         current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):

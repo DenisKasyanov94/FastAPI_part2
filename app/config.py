@@ -1,10 +1,9 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
-class Settings(BaseSettings):
-    secret_key: str = "your-secret-key-change-in-production"
-    database_url: str = "sqlite:///./advertisements.db"
 
-    class Config:
-        env_file = ".env"
+class Settings:
+    secret_key = "your-super-secret-key-here-123"
+    database_url = "sqlite:///./advertisements.db"
 
 settings = Settings()

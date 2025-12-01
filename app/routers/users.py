@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
+import uuid
 from app.database import get_db
 from app import crud, schemas, models
 from app.dependencies import get_current_user, require_admin, optional_auth
 
 router = APIRouter(prefix="/user", tags=["users"])
 
+
 @router.post("/", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Проверяем, существует ли пользователь
+
     if crud.get_user_by_username(db, user.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -18,9 +20,10 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return crud.create_user(db, user)
 
+
 @router.get("/{user_id}", response_model=schemas.UserResponse)
 def get_user(
-        user_id: str,
+        user_id: uuid.UUID,
         current_user: Optional[models.User] = Depends(optional_auth),
         db: Session = Depends(get_db)
 ):
@@ -32,9 +35,10 @@ def get_user(
         )
     return user
 
+
 @router.patch("/{user_id}", response_model=schemas.UserResponse)
 def update_user(
-        user_id: str,
+        user_id: uuid.UUID,
         user_update: schemas.UserUpdate,
         current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
@@ -54,9 +58,10 @@ def update_user(
         )
     return user
 
+
 @router.delete("/{user_id}")
 def delete_user(
-        user_id: str,
+        user_id: uuid.UUID,
         current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):

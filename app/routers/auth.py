@@ -1,23 +1,40 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from datetime import timedelta
-from app.database import get_db
-from app import crud, auth, schemas
+from datetime import datetime, timedelta
+from typing import Optional
+from jose import jwt
+from passlib.context import CryptContext
+from fastapi import HTTPException, status
+from app.config import settings
 
-router = APIRouter(prefix="/login", tags=["authentication"])
 
-@router.post("/", response_model=schemas.TokenResponse)
-def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
-    user = crud.get_user_by_username(db, login_data.username)
-    if not user or not auth.verify_password(login_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password"
-        )
+SECRET_KEY = settings.secret_key
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 48
 
-    access_token = auth.create_access_token(
-        data={"sub": user.id},
-        expires_delta=timedelta(hours=48)
-    )
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256", "django_argon2", "sha256_crypt"],
+    default="pbkdf2_sha256",
+    deprecated="auto"
+)
 
-    return {"access_token": access_token, "token_type": "bearer"}
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.InvalidTokenError:
+        return None

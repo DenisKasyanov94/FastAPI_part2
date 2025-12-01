@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-import jwt
+from jose import jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
 from app.config import settings
@@ -10,7 +10,7 @@ SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 48
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
